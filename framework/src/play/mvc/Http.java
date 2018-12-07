@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,10 +16,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.jboss.netty.channel.ChannelHandlerContext;
-
 import com.google.gson.Gson;
 
+import io.netty.channel.ChannelHandlerContext;
 import play.Logger;
 import play.Play;
 import play.exceptions.UnexpectedException;

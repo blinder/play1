@@ -7,14 +7,17 @@ import java.net.InetSocketAddress;
 import java.util.Properties;
 import java.util.concurrent.Executors;
 
-import org.jboss.netty.bootstrap.ServerBootstrap;
-import org.jboss.netty.channel.ChannelException;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import io.netty.bootstrap.Bootstrap;
+import io.netty.bootstrap.ServerBootstrap;
+import io.netty.channel.ChannelException;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.nio.NioServerSocketChannel;
 import play.Logger;
 import play.Play;
 import play.Play.Mode;
 import play.libs.IO;
-import play.server.ssl.SslHttpServerPipelineFactory;
+import play.server.ssl.SslHttpServerInitializer;
 
 public class Server {
 
@@ -63,15 +66,13 @@ public class Server {
             Logger.error(e, "Could not understand https.address");
             Play.fatalServerErrorOccurred();
         }
-        ServerBootstrap bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(), Executors.newCachedThreadPool())
-        );
+        ServerBootstrap bootstrap = new ServerBootstrap().channel(NioServerSocketChannel.class).group(new NioEventLoopGroup());
         try {
             if (httpPort != -1) {
-                bootstrap.setPipelineFactory(new HttpServerPipelineFactory());
+                bootstrap.childHandler(new HttpServerInitializer());
 
                 bootstrap.bind(new InetSocketAddress(address, httpPort));
-                bootstrap.setOption("child.tcpNoDelay", true);
+                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
                 if (Play.mode == Mode.DEV) {
                     if (address == null) {
@@ -94,15 +95,13 @@ public class Server {
             Play.fatalServerErrorOccurred();
         }
 
-        bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(), Executors.newCachedThreadPool())
-        );
+        bootstrap = new ServerBootstrap().channel(NioServerSocketChannel.class).group(new NioEventLoopGroup());
 
         try {
             if (httpsPort != -1) {
-                bootstrap.setPipelineFactory(new SslHttpServerPipelineFactory());
+                bootstrap.childHandler(new SslHttpServerInitializer());
                 bootstrap.bind(new InetSocketAddress(secureAddress, httpsPort));
-                bootstrap.setOption("child.tcpNoDelay", true);
+                bootstrap.childOption(ChannelOption.TCP_NODELAY, true);
 
                 if (Play.mode == Mode.DEV) {
                     if (secureAddress == null) {
